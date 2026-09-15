@@ -1,0 +1,2 @@
+# INFOMADS-2026
+INFOMADS 2026 project
