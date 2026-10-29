@@ -29,7 +29,7 @@ def solve_sequence(seq, jobs):
     m = len(seq) # amount of slots
     n = len(jobs) # amount of jobs
 
-    # define the cost function
+    # define the cost function (3)
     last = {} # job id: last slot of that job
     for j in range(1, n+1):
         last[j] = max(l for l,x in enumerate(seq) if x == j)
@@ -38,15 +38,29 @@ def solve_sequence(seq, jobs):
         omega += [sum(1 for j in range(1, n+1) if last[j] >= l)]
     c = omega + omega # omega values for g_l and d_l (so twice), give this to the solver
 
-    # Constraint (5)
     A_ub = []
     b_ub = []
+    # Constraint (5)
     for i in range(m):
-        row = np.zeros(2*m)
-        row[0:i+1] = -1
-        row[m:m+i] = -1
-        A_ub.append(row)
-        
+        row = np.zeros(2*m) # Create array with zeros of length 2m
+        row[0:i+1] = -1 # Change the first i elements to -1
+        row[m:m+i] = -1 # Change element m to m+i to -1
+        A_ub.append(row.tolist())
+        b_ub.append(-jobs[seq[i]-1][0])
+
+    A_eq = []
+    b_eq = []
+    # Constraint (6)
+    for j in range(n):
+        row = np.zeros(2*m) # Create an array with zeros of length 2m
+        I_j = [i for i, v in enumerate(seq) if j+1 == v] # Get all indexes of slots where job j is being processed
+        for i in I_j:
+            row[m+i-1] = 1
+        A_eq.append(row)
+        big_Q = jobs[j][1] * jobs[j][2] ** (len(I_j) - 1)
+        b_eq.append(big_Q)
+
+    # Constraint (3)
 
     # pass it to LP-solver
     return linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq,
@@ -63,3 +77,4 @@ for i in sequences(4):
     if sol.fun < best:
         best = sol.fun
 print(best)
+
