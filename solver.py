@@ -1,18 +1,22 @@
 import numpy as np
 from scipy.optimize import linprog
 
+# This program is entirely conform to paragraph 3 in the scientific paper.
+# Here we generate all the possible job sequences, and for each sequence we
+# solve the LP formulated in paragraph 3.2
+
 # Give all possible sequences of numbers 1..n, where no number appears twice in a row,
 # the sequence has length between n and 2n-1, and al numbers appear in a sequence at least once
 def sequences(n):
     maxlen = 2 * n - 1
     result = []
-    layer = []
-    for i in range(1, n+1):
-        layer.append([i])
+    layer = [] # Layer contains feasible sequences, apart from that it might not contain all numbers 1..n
+    for i in range(1, n+1): # First, fill layer with initial values (For n = 3, layer = [[1], [2], [3]] )
+        layer.append([i]) 
     for length in range(1, maxlen + 1):
-        result += [s for s in layer if len(set(s)) == n]
+        result += [s for s in layer if len(set(s)) == n] # Add all the sets in layer which contain all the numbers 1..n to the result. (For the first few iterations there won't be anything added to result)
         if length < maxlen:
-            layer = append_sequences(layer, n)
+            layer = append_sequences(layer, n) # If layer contains sequences of length x, extend them to sequences with length x+1
     return result
 
 # Takes a list of length x lists, and transforms it into a list of lists with length x+1, according to the rules above
@@ -57,7 +61,7 @@ def solve_sequence(seq, jobs):
         for i in I_j:
             row[m+i] = 1
         A_eq.append(row)
-        big_Q = jobs[j][1] * jobs[j][2] ** (len(I_j) - 1)
+        big_Q = jobs[j][1] * jobs[j][2] ** (len(I_j) - 1) # the right hand side Q
         b_eq.append(big_Q)
 
     # pass it to LP-solver
@@ -66,25 +70,26 @@ def solve_sequence(seq, jobs):
 
     return solution, seq
 
-
+# input: list of jobs with their specifications
 jobs = [(0, 2, 1.3), 
         (1, 10, 1.1),
         (5, 3, 2),
         (3.5, 0.5, 3)]
 
-bestcost = 2147483647
-bestsol = []
-bestseq = []
+bestcost = 2147483647 # cost of current best solution
+bestsol = [] # decision variables of current best solution
+bestseq = [] # sequence corresponding to the current best solution
 for i in sequences(4):
     sol, seq = solve_sequence(i, jobs)
-    if sol.fun < bestcost:
+    if sol.fun < bestcost: # When a better solution is found, update the "best" values
         bestcost = sol.fun
         bestsol = sol.x
         bestseq = seq
 
-def calculate_starttime(l): # calculates the start time of segment l
+def calculate_starttime(l): # calculates the start time of segment l, to be showed in the output
     return str(sum([n for i,n in enumerate(bestsol) if i <= l or m <= i < m + l]))
 
+# prints the output
 m = len(bestseq)
 for i in range(m):
     print(str(bestseq[i]) + ",\t" + calculate_starttime(i) + ",\t" + str(bestsol[m:][i]))
