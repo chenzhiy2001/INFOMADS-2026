@@ -61,18 +61,31 @@ def solve_sequence(seq, jobs):
         b_eq.append(big_Q)
 
     # pass it to LP-solver
-    return linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq,
+    solution = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq,
                    bounds=(0, None), method="highs")
 
-jobs = [(0, 10, 1.1), 
-        (5, 0.1, 2),
-        (6, 3, 1),
-        (0.1, 0.4, 2)]
+    return solution, seq
 
-best = 2147483647
+
+jobs = [(0, 2, 1.3), 
+        (1, 10, 1.1),
+        (5, 3, 2),
+        (3.5, 0.5, 3)]
+
+bestcost = 2147483647
+bestsol = []
+bestseq = []
 for i in sequences(4):
-    sol = solve_sequence(i, jobs)
-    if sol.fun < best:
-        best = sol.fun
-print(best)
+    sol, seq = solve_sequence(i, jobs)
+    if sol.fun < bestcost:
+        bestcost = sol.fun
+        bestsol = sol.x
+        bestseq = seq
 
+def calculate_starttime(l): # calculates the start time of segment l
+    return str(sum([n for i,n in enumerate(bestsol) if i <= l or m <= i < m + l]))
+
+m = len(bestseq)
+for i in range(m):
+    print(str(bestseq[i]) + ",\t" + calculate_starttime(i) + ",\t" + str(bestsol[m:][i]))
+print(bestcost)
