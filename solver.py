@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import linprog
+import time
 
 # This program is entirely conform to paragraph 3 in the scientific paper.
 # Here we generate all the possible job sequences, and for each sequence we
@@ -70,27 +71,36 @@ def solve_sequence(seq, jobs):
 
     return solution, seq
 
-# input: list of jobs with their specifications
-jobs = [(0, 2, 1.3), 
-        (1, 10, 1.1),
-        (5, 3, 2),
-        (3.5, 0.5, 3)]
+def calculate_starttime(l, bestsol): # calculates the start time of segment l, to be showed in the output
+    return f"{sum([n for i,n in enumerate(bestsol) if i <= l or m <= i < m + l]):.1f}"
 
-bestcost = 2147483647 # cost of current best solution
-bestsol = [] # decision variables of current best solution
-bestseq = [] # sequence corresponding to the current best solution
-for i in sequences(len(jobs)):
-    sol, seq = solve_sequence(i, jobs)
-    if sol.fun < bestcost: # When a better solution is found, update the "best" values
-        bestcost = sol.fun
-        bestsol = sol.x
-        bestseq = seq
 
-def calculate_starttime(l): # calculates the start time of segment l, to be showed in the output
-    return str(sum([n for i,n in enumerate(bestsol) if i <= l or m <= i < m + l]))
+# read instances from file
+with open("offline test instances.txt") as file:
+    inputblocks = file.read().strip().split("\n\n")
+instances = []
+for i in inputblocks:
+    rows = i.split("\n")[1:]  # skip the count line
+    instances.append([tuple(map(float, row.split(", "))) for row in rows])
 
-# prints the output
-m = len(bestseq)
-for i in range(m):
-    print(str(bestseq[i]) + ",\t" + calculate_starttime(i) + ",\t" + str(bestsol[m:][i]))
-print(bestcost)
+# run all instances and put the results in a file
+with open("offline test results.txt", "w") as out:
+    for inst in instances:
+        bestcost = 2147483647 # cost of current best solution
+        bestsol = [] # decision variables of current best solution
+        bestseq = [] # sequence corresponding to the current best solution
+        start_time = time.time()
+        for i in sequences(len(inst)):
+            sol, seq = solve_sequence(i, inst)
+            if sol.fun < bestcost: # When a better solution is found, update the "best" values
+                bestcost = sol.fun
+                bestsol = sol.x
+                bestseq = seq
+        end_time = time.time()
+        # prints the output
+        m = len(bestseq)
+        for i in range(m):
+            print(f"{bestseq[i]},\t {calculate_starttime(i, bestsol)},\t {bestsol[m:][i]:.1f}", file=out)
+        print(f"{bestcost:.1f}", file=out)
+        print(f"Runtime is {(end_time - start_time) * 1000} milliseconds", file=out)
+        print(file=out)
