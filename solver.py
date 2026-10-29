@@ -55,12 +55,10 @@ def solve_sequence(seq, jobs):
         row = np.zeros(2*m) # Create an array with zeros of length 2m
         I_j = [i for i, v in enumerate(seq) if j+1 == v] # Get all indexes of slots where job j is being processed
         for i in I_j:
-            row[m+i-1] = 1
+            row[m+i] = 1
         A_eq.append(row)
         big_Q = jobs[j][1] * jobs[j][2] ** (len(I_j) - 1)
         b_eq.append(big_Q)
-
-    # Constraint (3)
 
     # pass it to LP-solver
     return linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq,
