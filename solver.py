@@ -47,7 +47,7 @@ def solve_sequence(seq, jobs):
     # Constraint (5)
     for i in range(m):
         row = np.zeros(2*m) # Create array with zeros of length 2m
-        row[0:i+1] = -1 # Change the first i elements to -1
+        row[0:i+1] = -1 # Change the first i+1 elements to -1
         row[m:m+i] = -1 # Change element m to m+i to -1
         A_ub.append(row.tolist())
         b_ub.append(-jobs[seq[i]-1][0])
@@ -79,7 +79,7 @@ jobs = [(0, 2, 1.3),
 bestcost = 2147483647 # cost of current best solution
 bestsol = [] # decision variables of current best solution
 bestseq = [] # sequence corresponding to the current best solution
-for i in sequences(4):
+for i in sequences(len(jobs)):
     sol, seq = solve_sequence(i, jobs)
     if sol.fun < bestcost: # When a better solution is found, update the "best" values
         bestcost = sol.fun
