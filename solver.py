@@ -38,10 +38,15 @@ def solve_sequence(seq, jobs):
         omega += [sum(1 for j in range(1, n+1) if last[j] >= l)]
     c = omega + omega # omega values for g_l and d_l (so twice), give this to the solver
 
+    # Constraint (5)
     A_ub = []
     b_ub = []
-    
-
+    for i in range(m):
+        row = np.zeros(2*m)
+        row[0:i+1] = -1
+        row[m:m+i] = -1
+        A_ub.append(row)
+        
 
     # pass it to LP-solver
     return linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq,
